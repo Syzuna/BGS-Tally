@@ -1,5 +1,12 @@
 # Change Log
 
+## v1.8.1 - 2022-04-04
+
+### Changes:
+
+* Now able to use different Discord webhook URLs.
+
+
 ## v1.8.0 - 2022-02-23
 
 ### New Features:
