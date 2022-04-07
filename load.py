@@ -17,7 +17,7 @@ from theme import theme
 from ttkHyperlinkLabel import HyperlinkLabel
 
 this = sys.modules[__name__]  # For holding module globals
-this.VersionNo = "1.8.0"
+this.VersionNo = "1.8.1"
 this.FactionNames = []
 this.TodayData = {}
 this.YesterdayData = {}
@@ -117,7 +117,7 @@ def plugin_prefs(parent, cmdr, is_beta):
     # Make the second column fill available space
     frame.columnconfigure(1, weight=1)
 
-    HyperlinkLabel(frame, text="BGS Tally (modified by Aussi) v" + this.VersionNo, background=nb.Label().cget("background"), url="https://github.com/aussig/BGS-Tally/wiki", underline=True).grid(columnspan=2, padx=10, sticky=tk.W)
+    HyperlinkLabel(frame, text="BGS Tally (modified by Sakura San) v" + this.VersionNo, background=nb.Label().cget("background"), url="https://github.com/Sakurax64/BGS-Tally", underline=True).grid(columnspan=2, padx=10, sticky=tk.W)
     ttk.Separator(frame, orient=tk.HORIZONTAL).grid(columnspan=2, padx=10, pady=2, sticky=tk.EW)
     nb.Checkbutton(frame, text="BGS Tally Active", variable=this.Status, onvalue="Active", offvalue="Paused").grid(column=1, padx=10, sticky=tk.W)
     nb.Checkbutton(frame, text="Show Systems with Zero Activity", variable=this.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(column=1, padx=10, sticky=tk.W)
@@ -193,7 +193,7 @@ def plugin_app(parent):
     Create a frame for the EDMC main window
     """
     this.frame = tk.Frame(parent)
-    Title = tk.Label(this.frame, text="BGS Tally (modified by Aussi) v" + this.VersionNo)
+    Title = tk.Label(this.frame, text="BGS Tally (modified by Sakura San) v" + this.VersionNo)
     Title.grid(row=0, column=0, sticky=tk.W)
     if version_tuple(this.GitVersion) > version_tuple(this.VersionNo):
         HyperlinkLabel(this.frame, text="New version available", background=nb.Label().cget("background"), url="https://github.com/aussig/BGS-Tally/releases/latest", underline=True).grid(row=0, column=1, sticky=tk.W)
@@ -972,7 +972,8 @@ def is_webhook_valid():
     """
     Do a basic check on the user specified Discord webhook
     """
-    return this.DiscordWebhook.get().startswith('https://discordapp.com/api/webhooks/') or this.DiscordWebhook.get().startswith('https://discord.com/api/webhooks/') or this.DiscordWebhook.get().startswith('https://ptb.discord.com/api/webhooks/') or this.DiscordWebhook.get().startswith('https://canary.discord.com/api/webhooks/')
+    return this.DiscordWebhook.get().startswith('https://discordapp.com/api/webhooks/') or this.DiscordWebhook.get().startswith('https://discord.com/api/webhooks/') or this.DiscordWebhook.get().startswith('https://ptb.discord.com/api/webhooks/') or this.DiscordWebhook.get().startswith('https://canary.discord.com/api/webhooks/') 
+
 
 
 def tick_format(ticktime):
