@@ -9,12 +9,23 @@ from enum import Enum
 from functools import partial
 from os import path
 from tkinter import ttk
+#from ttkthemes import ThemedTk
 
 import myNotebook as nb
 import requests
 from config import appname, config
 from theme import theme
 from ttkHyperlinkLabel import HyperlinkLabel
+
+
+# dark mode
+
+""" app = tk.Tk()
+app.geometry("200x400")
+app.title("Changing Themes")
+# Setting Theme
+style = ThemedStyle(app)
+style.set_theme("scidgrey") """
 
 this = sys.modules[__name__]  # For holding module globals
 this.VersionNo = "1.8.1"
@@ -113,11 +124,14 @@ def plugin_prefs(parent, cmdr, is_beta):
     """
     Return a TK Frame for adding to the EDMC settings dialog.
     """
+
+    ttk.Style().theme_use('equilux')
+
     frame = nb.Frame(parent)
     # Make the second column fill available space
     frame.columnconfigure(1, weight=1)
 
-    HyperlinkLabel(frame, text="BGS Tally (modified by Sakura San) v" + this.VersionNo, background=nb.Label().cget("background"), url="https://github.com/Sakurax64/BGS-Tally", underline=True).grid(columnspan=2, padx=10, sticky=tk.W)
+    HyperlinkLabel(frame, text="BGS Tally (modified by Sakura San) v" + this.VersionNo, background=nb.Label().cget("background"), url="https://github.com/Sakurax64/BGS-Tally/releases/latest", underline=True).grid(columnspan=2, padx=10, sticky=tk.W)
     ttk.Separator(frame, orient=tk.HORIZONTAL).grid(columnspan=2, padx=10, pady=2, sticky=tk.EW)
     nb.Checkbutton(frame, text="BGS Tally Active", variable=this.Status, onvalue="Active", offvalue="Paused").grid(column=1, padx=10, sticky=tk.W)
     nb.Checkbutton(frame, text="Show Systems with Zero Activity", variable=this.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(column=1, padx=10, sticky=tk.W)
@@ -173,7 +187,7 @@ def plugin_start3(plugin_dir):
     this.DataIndex = tk.IntVar(value=config.get_int("xIndex"))
     this.StationFaction = tk.StringVar(value=config.get_str("XStation"))
     this.StationType = tk.StringVar(value=config.get_str("XStationType"))
-    response = requests.get('https://api.github.com/repos/aussig/BGS-Tally/releases/latest')  # check latest version
+    response = requests.get('https://api.github.com/repos/Sakurax64/BGS-Tally/releases/latest')  # check latest version
     latest = response.json()
     this.GitVersion = latest['tag_name']
     check_tick()
@@ -192,11 +206,12 @@ def plugin_app(parent):
     """
     Create a frame for the EDMC main window
     """
+    print(sys.path)
     this.frame = tk.Frame(parent)
     Title = tk.Label(this.frame, text="BGS Tally (modified by Sakura San) v" + this.VersionNo)
     Title.grid(row=0, column=0, sticky=tk.W)
     if version_tuple(this.GitVersion) > version_tuple(this.VersionNo):
-        HyperlinkLabel(this.frame, text="New version available", background=nb.Label().cget("background"), url="https://github.com/aussig/BGS-Tally/releases/latest", underline=True).grid(row=0, column=1, sticky=tk.W)
+        HyperlinkLabel(this.frame, text="New version available", background=nb.Label().cget("background"), url="https://github.com/Sakurax64/BGS-Tally/releases/latest", underline=True).grid(row=0, column=1, sticky=tk.W)
     tk.Button(this.frame, text='Latest BGS Tally', command=display_todaydata).grid(row=1, column=0, padx=3)
     tk.Button(this.frame, text='Previous BGS Tally', command=display_yesterdaydata).grid(row=1, column=1, padx=3)
     tk.Label(this.frame, text="BGS Tally Plugin Status:").grid(row=2, column=0, sticky=tk.W)
