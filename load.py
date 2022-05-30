@@ -1,6 +1,8 @@
+import encodings
 import json
 import logging
 import os.path
+from sre_parse import State
 import sys
 import tkinter as tk
 import webbrowser
@@ -8,8 +10,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from functools import partial
 from os import path
-from tkinter import ttk
-#from ttkthemes import ThemedTk
+from tkinter import DISABLED, ttk
 
 import myNotebook as nb
 import requests
@@ -18,17 +19,8 @@ from theme import theme
 from ttkHyperlinkLabel import HyperlinkLabel
 
 
-# dark mode
-
-""" app = tk.Tk()
-app.geometry("200x400")
-app.title("Changing Themes")
-# Setting Theme
-style = ThemedStyle(app)
-style.set_theme("scidgrey") """
-
 this = sys.modules[__name__]  # For holding module globals
-this.VersionNo = "1.8.1"
+this.VersionNo = "2.0"
 this.FactionNames = []
 this.TodayData = {}
 this.YesterdayData = {}
@@ -125,8 +117,6 @@ def plugin_prefs(parent, cmdr, is_beta):
     Return a TK Frame for adding to the EDMC settings dialog.
     """
 
-    ttk.Style().theme_use('equilux')
-
     frame = nb.Frame(parent)
     # Make the second column fill available space
     frame.columnconfigure(1, weight=1)
@@ -137,7 +127,7 @@ def plugin_prefs(parent, cmdr, is_beta):
     nb.Checkbutton(frame, text="Show Systems with Zero Activity", variable=this.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(column=1, padx=10, sticky=tk.W)
     nb.Label(frame, text="Discord Settings").grid(column=0, padx=10, sticky=tk.W)
     ttk.Separator(frame, orient=tk.HORIZONTAL).grid(columnspan=2, padx=10, pady=2, sticky=tk.EW)
-    nb.Checkbutton(frame, text="Abbreviate Faction Names", variable=this.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(column=1, padx=10, sticky=tk.W)
+    #nb.Checkbutton(frame, text="Abbreviate Faction Names", variable=this.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(column=1, padx=10, sticky=tk.W)
     nb.Checkbutton(frame, text="Include Secondary INF", variable=this.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(column=1, padx=10, sticky=tk.W)
     nb.Label(frame, text="Discord Webhook URL").grid(column=0, padx=10, sticky=tk.W, row=9)
     EntryPlus(frame, textvariable=this.DiscordWebhook).grid(column=1, padx=10, pady=2, sticky=tk.EW, row=9)
@@ -150,7 +140,8 @@ def plugin_prefs(parent, cmdr, is_beta):
 def plugin_start3(plugin_dir):
     """
     Load this plugin into EDMC
-    """
+    """    
+
     this.Dir = plugin_dir
     file = os.path.join(this.Dir, "Today Data.txt")
     if path.exists(file):
@@ -581,6 +572,7 @@ def display_data(title, data, tick_mode):
     DiscordScroll.pack(fill=tk.Y, side=tk.RIGHT)
     Discord.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
 
+
     DiscordOptionsFrame = ttk.Frame(DiscordFrame)
     DiscordOptionsFrame.grid(row=2, column=1, padx=5, pady=5, sticky=tk.NW)
     ttk.Checkbutton(DiscordOptionsFrame, text="Abbreviate Faction Names", variable=this.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(option_change, Discord, data)).grid(sticky=tk.W)
@@ -661,11 +653,11 @@ def display_data(title, data, tick_mode):
 
             ttk.Label(tab, text=data[i][0]['Factions'][x]['FactionState']).grid(row=x + header_rows, column=2, sticky=tk.N)
             MissionPointsVar = tk.IntVar(value=data[i][0]['Factions'][x]['MissionPoints'])
-            ttk.Spinbox(tab, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=3, sticky=tk.N, padx=2, pady=2)
+            ttk.Spinbox(tab, from_=-9999, to=9999, increment=0, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=3, sticky=tk.N, padx=2, pady=2)
             MissionPointsVar.trace('w', partial(mission_points_change, MissionPointsVar, True, Discord, data, i, x))
             if (data[i][0]['Factions'][x]['FactionState'] not in this.ConflictStates and data[i][0]['Factions'][x]['FactionState'] != 'Election'):
                 MissionPointsSecVar = tk.IntVar(value=data[i][0]['Factions'][x]['MissionPointsSecondary'])
-                ttk.Spinbox(tab, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=4, sticky=tk.N, padx=2, pady=2)
+                ttk.Spinbox(tab, from_=-9999, to=9999, increment=0, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=4, sticky=tk.N, padx=2, pady=2)
                 MissionPointsSecVar.trace('w', partial(mission_points_change, MissionPointsSecVar, False, Discord, data, i, x))
             ttk.Label(tab, text=human_format(data[i][0]['Factions'][x]['TradePurchase'])).grid(row=x + header_rows, column=5, sticky=tk.N)
             ttk.Label(tab, text=human_format(data[i][0]['Factions'][x]['TradeProfit'])).grid(row=x + header_rows, column=6, sticky=tk.N)
@@ -679,17 +671,17 @@ def display_data(title, data, tick_mode):
 
             if (data[i][0]['Factions'][x]['FactionState'] in this.ConflictStates):
                 CZSpaceLVar = tk.StringVar(value=data[i][0]['Factions'][x]['SpaceCZ'].get('l', '0'))
-                ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZSpaceLVar).grid(row=x + header_rows, column=14, sticky=tk.N, padx=2, pady=2)
+                ttk.Spinbox(tab, from_=-9999, to=9999, increment=0, width=3, textvariable=CZSpaceLVar).grid(row=x + header_rows, column=14, sticky=tk.N, padx=2, pady=2)
                 CZSpaceMVar = tk.StringVar(value=data[i][0]['Factions'][x]['SpaceCZ'].get('m', '0'))
-                ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZSpaceMVar).grid(row=x + header_rows, column=15, sticky=tk.N, padx=2, pady=2)
+                ttk.Spinbox(tab, from_=-9999, to=9999, increment=0, width=3, textvariable=CZSpaceMVar).grid(row=x + header_rows, column=15, sticky=tk.N, padx=2, pady=2)
                 CZSpaceHVar = tk.StringVar(value=data[i][0]['Factions'][x]['SpaceCZ'].get('h', '0'))
-                ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZSpaceHVar).grid(row=x + header_rows, column=16, sticky=tk.N, padx=2, pady=2)
+                ttk.Spinbox(tab, from_=-9999, to=9999, increment=0, width=3, textvariable=CZSpaceHVar).grid(row=x + header_rows, column=16, sticky=tk.N, padx=2, pady=2)
                 CZGroundLVar = tk.StringVar(value=data[i][0]['Factions'][x]['GroundCZ'].get('l', '0'))
-                ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZGroundLVar).grid(row=x + header_rows, column=17, sticky=tk.N, padx=2, pady=2)
+                ttk.Spinbox(tab, from_=-9999, to=9999, increment=0, width=3, textvariable=CZGroundLVar).grid(row=x + header_rows, column=17, sticky=tk.N, padx=2, pady=2)
                 CZGroundMVar = tk.StringVar(value=data[i][0]['Factions'][x]['GroundCZ'].get('m', '0'))
-                ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZGroundMVar).grid(row=x + header_rows, column=18, sticky=tk.N, padx=2, pady=2)
+                ttk.Spinbox(tab, from_=-9999, to=9999, increment=0, width=3, textvariable=CZGroundMVar).grid(row=x + header_rows, column=18, sticky=tk.N, padx=2, pady=2)
                 CZGroundHVar = tk.StringVar(value=data[i][0]['Factions'][x]['GroundCZ'].get('h', '0'))
-                ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=19, sticky=tk.N, padx=2, pady=2)
+                ttk.Spinbox(tab, from_=-9999, to=9999, increment=0, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=19, sticky=tk.N, padx=2, pady=2)
                 # Watch for changes on all SpinBox Variables. This approach catches any change, including manual editing, while using 'command' callbacks only catches clicks
                 CZSpaceLVar.trace('w', partial(cz_change, CZSpaceLVar, Discord, CZs.SPACE_LOW, data, i, x))
                 CZSpaceMVar.trace('w', partial(cz_change, CZSpaceMVar, Discord, CZs.SPACE_MED, data, i, x))
@@ -700,12 +692,13 @@ def display_data(title, data, tick_mode):
 
         update_enable_all_factions_checkbutton(EnableAllCheckbutton, FactionEnableCheckbuttons)
 
-    Discord.insert(tk.INSERT, generate_discord_text(data))
+    Discord.insert(tk.INSERT, generate_discord_text(data)+"\nGenerated by CIA-BGS-Tally.")
+    Discord.config(state=DISABLED)
     # Select all text and focus the field
     Discord.tag_add('sel', '1.0', 'end')
     Discord.focus()
 
-    ttk.Button(ContainerFrame, text="Copy to Clipboard", command=partial(copy_to_clipboard, ContainerFrame, Discord)).pack(side=tk.LEFT, padx=5, pady=5)
+    #ttk.Button(ContainerFrame, text="Copy to Clipboard", command=partial(copy_to_clipboard, ContainerFrame, Discord)).pack(side=tk.LEFT, padx=5, pady=5)
     if is_webhook_valid(): ttk.Button(ContainerFrame, text="Post to Discord", command=partial(post_to_discord, ContainerFrame, Discord, tick_mode)).pack(side=tk.RIGHT, padx=5, pady=5)
 
     theme.update(ContainerFrame)
@@ -1016,12 +1009,18 @@ def save_data():
     config.set('XIndex', this.DataIndex.get())
     config.set('XStation', this.StationFaction.get())
     config.set('XStationType', this.StationType.get())
+
+    #write today data to file
     file = os.path.join(this.Dir, "Today Data.txt")
     with open(file, 'w') as outfile:
         json.dump(this.TodayData, outfile)
+
+    #write yesterday data to file
     file = os.path.join(this.Dir, "Yesterday Data.txt")
     with open(file, 'w') as outfile:
         json.dump(this.YesterdayData, outfile)
+
+    #write missionlog to file
     file = os.path.join(this.Dir, "MissionLog.txt")
     with open(file, 'w') as outfile:
         json.dump(this.MissionLog, outfile)
@@ -1034,7 +1033,6 @@ class EntryPlus(ttk.Entry):
     """
     def __init__(self, *args, **kwargs):
         ttk.Entry.__init__(self, *args, **kwargs)
-        _rc_menu_install(self)
         # overwrite default class binding so we don't need to return "break"
         self.bind_class("Entry", "<Control-a>", self.event_select_all)
         self.bind("<Button-3><ButtonRelease-3>", self.show_menu)
@@ -1053,7 +1051,6 @@ class TextPlus(tk.Text):
     """
     def __init__(self, *args, **kwargs):
         tk.Text.__init__(self, *args, **kwargs)
-        _rc_menu_install(self)
         # overwrite default class binding so we don't need to return "break"
         self.bind_class("Text", "<Control-a>", self.event_select_all)
         self.bind("<Button-3><ButtonRelease-3>", self.show_menu)
@@ -1064,20 +1061,3 @@ class TextPlus(tk.Text):
 
     def show_menu(self, e):
         self.menu.tk_popup(e.x_root, e.y_root)
-
-
-def _rc_menu_install(w):
-    """
-    Create a context sensitive menu for a text widget
-    """
-    w.menu = tk.Menu(w, tearoff=0)
-    w.menu.add_command(label="Cut")
-    w.menu.add_command(label="Copy")
-    w.menu.add_command(label="Paste")
-    w.menu.add_separator()
-    w.menu.add_command(label="Select all")
-
-    w.menu.entryconfigure("Cut", command=lambda: w.focus_force() or w.event_generate("<<Cut>>"))
-    w.menu.entryconfigure("Copy", command=lambda: w.focus_force() or w.event_generate("<<Copy>>"))
-    w.menu.entryconfigure("Paste", command=lambda: w.focus_force() or w.event_generate("<<Paste>>"))
-    w.menu.entryconfigure("Select all", command=w.event_select_all)
