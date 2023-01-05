@@ -1,11 +1,8 @@
-import encodings
 import json
 import logging
 import os.path
-from sre_parse import State
 import sys
 import tkinter as tk
-import webbrowser
 from datetime import datetime, timedelta
 from enum import Enum
 from functools import partial
